@@ -23,7 +23,7 @@ for ws in "${!clusters[@]}"; do
   echo "🛠️  ${ws}-cluster 생성 중 (${clusters[$ws]} nodes)"
   terraform workspace select $ws
   terraform apply -auto-approve \
-    -var="cluster_name=${ws}-cluster" \
+    -var="cluster_name=${ws}" \
     -var="node_count=${clusters[$ws]}"
 done
 

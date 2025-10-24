@@ -103,7 +103,7 @@ module "eks" {
       min_size        = 1
       instance_types  = [var.instance_type]
 
-      ami_type        = "UBUNTU_X86_64"
+      ami_type        = "AL2023_x86_64_STANDARD"
 
       # Node IAM Role 연결
       node_role_arn   = aws_iam_role.eks_node_role.arn
