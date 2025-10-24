@@ -1,0 +1,7 @@
+# terraform.tfvars
+
+vpc_id                       = "vpc-0xxxxxx"
+private_subnet_ids           = ["subnet-0xxxxxx", "subnet-0yyyyyy"]
+eks_worker_security_group_id = "sg-0zzzzzzz"
+region                       = "ap-northeast-2"
+cluster_name                 = "MSK_name_you_want"
