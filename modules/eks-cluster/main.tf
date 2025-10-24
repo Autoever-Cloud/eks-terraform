@@ -87,7 +87,7 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.30"
+  cluster_version = "1.31"
 
   enable_cluster_creator_admin_permissions = true
   cluster_endpoint_public_access           = true
@@ -103,8 +103,7 @@ module "eks" {
       min_size        = 1
       instance_types  = [var.instance_type]
 
-      # 안정적인 Amazon Linux 2 AMI 사용
-      ami_type        = "AL2_x86_64"
+      ami_type        = "UBUNTU_X86_64"
 
       # Node IAM Role 연결
       node_role_arn   = aws_iam_role.eks_node_role.arn
