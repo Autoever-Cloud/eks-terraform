@@ -85,7 +85,7 @@ resource "aws_msk_cluster" "msk_cluster" {
 
   kafka_version = "3.6.0"
 
-  number_of_broker_nodes = 3
+  number_of_broker_nodes = 2
   broker_node_group_info {
     instance_type = "kafka.t3.small"
 
@@ -116,16 +116,16 @@ resource "aws_msk_cluster" "msk_cluster" {
     }
     # EBS 볼륨 암호화는 기본적으로 AWS 관리형 키로 활성화됩니다.
   } # <--- [수정됨] encryption_info 블록이 여기서 닫혀야 합니다.
-
-  # CloudWatch 로깅 설정
-  logging_info {
-    broker_logs {
-      cloudwatch_logs {
-        enabled   = true
-        log_group = "msk-solog-msk-cluster-broker-logs"
-      }
-    }
-  }
+#
+#  # CloudWatch 로깅 설정
+#  logging_info {
+#    broker_logs {
+#      cloudwatch_logs {
+#        enabled   = true
+#        log_group = "msk-solog-msk-cluster-broker-logs"
+#      }
+#    }
+#  }
 
   tags = {
     Name = "my-msk-cluster"
