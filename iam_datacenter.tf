@@ -92,3 +92,34 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_policy_attachment_datacenter"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = aws_iam_role.eks_datacenter_ebs_csi_role.name
 }
+
+# 3-1. DataCenter EFS CSI 드라이버용 IAM 역할 (IRSA)
+resource "aws_iam_role" "eks_datacenter_efs_csi_role" {
+  name = "eks-datacenter-efs-csi-role"
+
+  # 1번에서 생성한 OIDC 공급자(클러스터)가 이 역할을 맡도록 허용
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.datacenter_oidc.arn
+        },
+        Action = "sts:AssumeRoleWithWebIdentity",
+        Condition = {
+          StringEquals = {
+            # EFS CSI 드라이버의 기본 ServiceAccount 이름
+            "${replace(aws_iam_openid_connect_provider.datacenter_oidc.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:efs-csi-controller-sa"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# EFS CSI 역할에 AWS 관리형 정책 연결
+resource "aws_iam_role_policy_attachment" "efs_csi_policy_attachment_datacenter" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
+  role       = aws_iam_role.eks_datacenter_efs_csi_role.name
+}

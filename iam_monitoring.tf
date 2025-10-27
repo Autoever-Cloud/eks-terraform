@@ -92,3 +92,30 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_policy_attachment_monitoring"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = aws_iam_role.eks_monitoring_ebs_csi_role.name
 }
+
+# --- 3-3. Monitoring EFS CSI 드라이버용 IAM 역할 (IRSA) ---
+resource "aws_iam_role" "eks_monitoring_efs_csi_role" {
+  name = "eks-monitoring-efs-csi-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.monitoring_oidc.arn
+        },
+        Action = "sts:AssumeRoleWithWebIdentity",
+        Condition = {
+          StringEquals = {
+            "${replace(aws_iam_openid_connect_provider.monitoring_oidc.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:efs-csi-controller-sa"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "efs_csi_policy_attachment_monitoring" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
+  role       = aws_iam_role.eks_monitoring_efs_csi_role.name
+}
