@@ -101,21 +101,20 @@ resource "aws_msk_cluster" "msk_cluster" {
     }
   }
 
-  # --- 보안 및 인증 설정 ---
+  # --- 보안 및 인증 설정 --- 안해~
   client_authentication {
-    sasl {
-      iam = true
-    }
+    #sasl {
+      #iam = true
+    #}
+    unauthenticated = true
   }
 
   # 전송 중 암호화 (네트워크 트래픽 암호화)
   encryption_info {
-    # 클라이언트(EKS)와 브로커 간 TLS 암호화를 활성화합니다.
     encryption_in_transit {
-      client_broker = "TLS" # PLAINTEXT, TLS_PLAINTEXT, TLS 중 선택
+      client_broker = "TLS_PLAINTEXT" # TLS_PLAINTEXT, TLS 중 선택
     }
-    # EBS 볼륨 암호화는 기본적으로 AWS 관리형 키로 활성화됩니다.
-  } # <--- [수정됨] encryption_info 블록이 여기서 닫혀야 합니다.
+  } 
 #
 #  # CloudWatch 로깅 설정
 #  logging_info {
@@ -147,4 +146,9 @@ output "msk_bootstrap_servers_iam" {
 output "msk_bootstrap_servers_tls" {
   description = "TLS 인증용 부트스트랩 서버 주소"
   value       = aws_msk_cluster.msk_cluster.bootstrap_brokers_tls
+}
+
+output "msk_bootstrap_servers_plaintext" {
+  description = "Plaintext (비인증, 9092 포트) 부트스트랩 서버 주소"
+  value       = aws_msk_cluster.msk_cluster.bootstrap_brokers
 }
