@@ -79,25 +79,22 @@ resource "aws_security_group" "msk_sg" {
   }
 }
 
-
 # 3. AWS MSK 클러스터 생성 (KRaft + EBS)
 resource "aws_msk_cluster" "msk_cluster" {
-  cluster_name = "solog-msk-cluster" 
-  
-  kafka_version = "3.6.0" 
-  cluster_mode = "KRAFT"
+  cluster_name = "solog-msk-cluster"
+
+  kafka_version = "3.6.0"
 
   number_of_broker_nodes = 3
-
   broker_node_group_info {
     instance_type = "kafka.t3.small"
 
-    client_subnets = data.aws_subnets.solog_public_subnets.ids
+    client_subnets  = data.aws_subnets.solog_public_subnets.ids
     security_groups = [aws_security_group.msk_sg.id]
 
     storage_info {
       ebs_storage_info {
-        volume_size = 100 
+        volume_size = 100
         # volume_type = "GP3" # (선택) GP3 타입을 명시할 수 있습니다.
         # throughput = 125    # (선택) GP3 사용 시 처리량 (MiB/s)
       }
@@ -107,27 +104,25 @@ resource "aws_msk_cluster" "msk_cluster" {
   # --- 보안 및 인증 설정 ---
   client_authentication {
     sasl {
-      iam = {
-        enabled = true
-      }
+      iam = true
     }
   }
 
-#  # 전송 중 암호화 (네트워크 트래픽 암호화)
-#  encryption_info {
-#    # 클라이언트(EKS)와 브로커 간 TLS 암호화를 활성화합니다.
-#    encryption_in_transit {
-#      client_broker = "TLS" # PLAINTEXT, TLS_PLAINTEXT, TLS 중 선택
-#    }
-#    # EBS 볼륨 암호화는 기본적으로 AWS 관리형 키로 활성화됩니다.
-#  }
-#
-  # (선택) CloudWatch 로깅 설정
+  # 전송 중 암호화 (네트워크 트래픽 암호화)
+  encryption_info {
+    # 클라이언트(EKS)와 브로커 간 TLS 암호화를 활성화합니다.
+    encryption_in_transit {
+      client_broker = "TLS" # PLAINTEXT, TLS_PLAINTEXT, TLS 중 선택
+    }
+    # EBS 볼륨 암호화는 기본적으로 AWS 관리형 키로 활성화됩니다.
+  } # <--- [수정됨] encryption_info 블록이 여기서 닫혀야 합니다.
+
+  # CloudWatch 로깅 설정
   logging_info {
     broker_logs {
       cloudwatch_logs {
         enabled   = true
-        log_group = "msk-${aws_msk_cluster.msk_cluster.cluster_name}-broker-logs"
+        log_group = "msk-solog-msk-cluster-broker-logs"
       }
     }
   }
@@ -135,7 +130,7 @@ resource "aws_msk_cluster" "msk_cluster" {
   tags = {
     Name = "my-msk-cluster"
   }
-}
+} 
 
 # 4. (선택) 생성된 MSK 클러스터 정보 출력
 
