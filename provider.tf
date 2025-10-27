@@ -10,6 +10,11 @@ terraform {
       source = "hashicorp/kubernetes"
       version = "~> 2.20"
     }
+    # [추가] OIDC 인증서 지문을 가져오기 위해 필요
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
 }
 
