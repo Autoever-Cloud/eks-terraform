@@ -32,6 +32,12 @@ resource "aws_eks_node_group" "kafka_nodegroup" {
     min_size     = 3 # eksctl --nodes-min
     max_size     = 5 # eksctl --nodes-max
   }
+
+  tags = {
+    "Name"        = "eks-kafka-node"
+    "ClusterName" = "eks-kafka-cluster" 
+    "ManagedBy"   = "Terraform"         
+  }
   
   # 노드 그룹이 클러스터와 IAM 역할 생성 이후에 만들어지도록 의존성 설정
   depends_on = [

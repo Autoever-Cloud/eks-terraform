@@ -32,7 +32,11 @@ resource "aws_eks_node_group" "monitoring_nodegroup" {
     min_size     = 2 
     max_size     = 5 
   }
-  
+  tags = {
+    "Name"        = "eks-monitoring-node"
+    "ClusterName" = "eks-monitoring-cluster" 
+    "ManagedBy"   = "Terraform"         
+  }
   # 노드 그룹이 클러스터와 IAM 역할 생성 이후에 만들어지도록 의존성 설정
   depends_on = [
     aws_iam_role_policy_attachment.node_policy_attachment_worker_monitoring,
