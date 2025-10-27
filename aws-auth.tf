@@ -15,8 +15,12 @@ locals {
       userarn  = "arn:aws:iam::484400672545:user/JJ"
       username = "JJ"
       groups   = ["system:masters"]
+    },
+    {
+      userarn  = "arn:aws:iam::484400672545:user/HS"
+      username = "HS"
+      groups   = ["system:masters"]
     }
-    # ... 팀원 추가 ...
   ]
 }
 
