@@ -28,8 +28,8 @@ resource "aws_eks_node_group" "kafka_nodegroup" {
 
   # 오토스케일링 설정
   scaling_config {
-    desired_size = 2 # eksctl --nodes
-    min_size     = 2 # eksctl --nodes-min
+    desired_size = 3 # eksctl --nodes
+    min_size     = 3 # eksctl --nodes-min
     max_size     = 5 # eksctl --nodes-max
   }
   
