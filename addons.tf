@@ -44,11 +44,15 @@ resource "aws_eks_addon" "datacenter_ebs_csi" {
 
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
+  
+  # [중요] 2번에서 생성한 IRSA 역할의 ARN을 지정합니다.
+  service_account_role_arn = aws_iam_role.eks_datacenter_ebs_csi_role.arn
 
   # OIDC 공급자 생성이 완료된 후에 애드온을 설치하도록 순서 보장
   depends_on = [
     aws_iam_openid_connect_provider.datacenter_oidc,
-    aws_eks_node_group.datacenter_nodegroup # 노드 그룹이 준비된 후 설치
+    aws_eks_node_group.datacenter_nodegroup,
+    aws_iam_role_policy_attachment.ebs_csi_policy_attachment_datacenter
   ]
 }
 
@@ -57,9 +61,13 @@ resource "aws_eks_addon" "kafka_ebs_csi" {
   addon_name        = "aws-ebs-csi-driver"
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
+
+  service_account_role_arn = aws_iam_role.eks_kafka_ebs_csi_role.arn
+
   depends_on = [
     aws_iam_openid_connect_provider.kafka_oidc,
-    aws_eks_node_group.kafka_nodegroup
+    aws_eks_node_group.kafka_nodegroup,
+    aws_iam_role_policy_attachment.ebs_csi_policy_attachment_kafka
   ]
 }
 
@@ -68,8 +76,12 @@ resource "aws_eks_addon" "monitoring_ebs_csi" {
   addon_name        = "aws-ebs-csi-driver"
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
+
+  service_account_role_arn = aws_iam_role.eks_monitoring_ebs_csi_role.arn
+
   depends_on = [
     aws_iam_openid_connect_provider.monitoring_oidc,
-    aws_eks_node_group.monitoring_nodegroup
+    aws_eks_node_group.monitoring_nodegroup,
+    aws_iam_role_policy_attachment.ebs_csi_policy_attachment_monitoring
   ]
 }

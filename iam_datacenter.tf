@@ -59,3 +59,36 @@ resource "aws_iam_role_policy_attachment" "node_policy_attachment_ecr_datacenter
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role = aws_iam_role.eks_datacenter_node_role.name
 }
+
+# 3. DataCenter EBS CSI 드라이버용 IAM 역할 (IRSA)
+resource "aws_iam_role" "eks_datacenter_ebs_csi_role" {
+  name = "eks-datacenter-ebs-csi-role"
+
+  # 1번에서 생성한 OIDC 공급자(클러스터)가 이 역할을 맡도록 허용
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          # OIDC 공급자의 ARN을 Federated Principal로 지정
+          Federated = aws_iam_openid_connect_provider.datacenter_oidc.arn
+        },
+        Action = "sts:AssumeRoleWithWebIdentity",
+        Condition = {
+          StringEquals = {
+            # kube-system 네임스페이스의 ebs-csi-controller-sa 서비스 어카운트만 허용
+            "${replace(aws_iam_openid_connect_provider.datacenter_oidc.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# 4. EBS CSI 역할에 AWS 관리형 정책 연결
+resource "aws_iam_role_policy_attachment" "ebs_csi_policy_attachment_datacenter" {
+  # EBS 볼륨을 생성/삭제/연결/분리하는 데 필요한 권한
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.eks_datacenter_ebs_csi_role.name
+}
