@@ -55,7 +55,34 @@ resource "kubernetes_config_map_v1_data" "aws_auth_patch_datacenter" {
     aws_eks_node_group.datacenter_nodegroup
   ]
 }
+# --- 3. Kafka 클러스터 권한 설정 ---
 
+# 3-1. Kafka 클러스터의 'aws-auth' ConfigMap을 읽어옵니다.
+data "kubernetes_config_map" "aws_auth_kafka" {
+  provider = kubernetes.kafka # Kafka 클러스터에 접속
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+}
+
+# 3-2. Kafka 클러스터의 'aws-auth'를 수정(Patch)합니다.
+resource "kubernetes_config_map_v1_data" "aws_auth_patch_kafka" {
+  provider = kubernetes.kafka # Kafka 클러스터에 접속
+  metadata {
+    name      = "aws-auth"
+    namespace = "kube-system"
+  }
+  data = {
+    "mapUsers" = yamlencode(concat(
+      try(yamldecode(data.kubernetes_config_map.aws_auth_kafka.data.mapUsers), []),
+      local.map_users
+    ))
+  }
+  depends_on = [
+    aws_eks_node_group.kafka_nodegroup 
+  ]
+}
 
 # --- 4. Monitoring 클러스터 권한 설정 ---
 

@@ -16,6 +16,22 @@ output "datacenter_kubeconfig_command" {
   value       = "aws eks update-kubeconfig --region ap-northeast-2 --name ${aws_eks_cluster.datacenter_cluster.name} --profile JWON"
 }
 
+# --- 2. Kafka 클러스터 ---
+output "kafka_cluster_name" {
+  description = "Kafka EKS 클러스터 이름"
+  value = aws_eks_cluster.kafka_cluster.name
+}
+
+output "kafka_cluster_endpoint" {
+  description = "Kafka EKS 클러스터 엔드포인트 URL"
+  value = aws_eks_cluster.kafka_cluster.endpoint
+}
+
+output "kafka_kubeconfig_command" {
+  description = "Kafka 클러스터 접속을 위한 kubeconfig 업데이트 명령어"
+  value = "aws eks update-kubeconfig --region ap-northeast-2 --name ${aws_eks_cluster.kafka_cluster.name} --profile JWON"
+}
+
 # --- 3. Monitoring 클러스터 ---
 output "monitoring_cluster_name" {
   description = "Monitoring EKS 클러스터 이름"

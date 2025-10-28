@@ -25,6 +25,7 @@ resource "aws_subnet" "solog_public_subnets" {
 
     # 3개 클러스터 이름을 모두 태그
     "kubernetes.io/cluster/eks-datacenter-cluster" = "shared"
+    "kubernetes.io/cluster/eks-kafka-cluster"      = "shared"
     "kubernetes.io/cluster/eks-monitoring-cluster" = "shared"
   }
 }

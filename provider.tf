@@ -40,6 +40,20 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.datacenter.token
 }
 
+# 2-2. Kafka 클러스터 접속 정보
+data "aws_eks_cluster" "kafka" {
+  name = aws_eks_cluster.kafka_cluster.name 
+}
+data "aws_eks_cluster_auth" "kafka" {
+  name = aws_eks_cluster.kafka_cluster.name
+}
+provider "kubernetes" {
+  alias = "kafka"
+  host = data.aws_eks_cluster.kafka.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.kafka.certificate_authority[0].data)
+  token = data.aws_eks_cluster_auth.kafka.token
+}
+
 # 2-3. Monitoring 클러스터 접속 정보
 data "aws_eks_cluster" "monitoring" {
   name = aws_eks_cluster.monitoring_cluster.name
