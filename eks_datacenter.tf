@@ -39,7 +39,6 @@ resource "aws_eks_node_group" "datacenter_nodegroup" {
   node_group_name = "eks-datacenter-nodegroup"  
   node_role_arn   = aws_iam_role.eks_datacenter_node_role.arn
   subnet_ids      = [for s in aws_subnet.solog_public_subnets : s.id]
-  # instance_types  = ["t3.medium"] 
   
   launch_template {
     id      = aws_launch_template.datacenter_lt.id
@@ -47,9 +46,9 @@ resource "aws_eks_node_group" "datacenter_nodegroup" {
   }
   # 오토스케일링 설정
   scaling_config {
-    desired_size = 1 
-    min_size     = 1 
-    max_size     = 3 
+    desired_size = 3 
+    min_size     = 3 
+    max_size     = 5 
   }
 
   tags = {

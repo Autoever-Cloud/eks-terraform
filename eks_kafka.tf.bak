@@ -39,7 +39,6 @@ resource "aws_eks_node_group" "kafka_nodegroup" {
   node_group_name = "eks-kafka-nodegroup"  
   node_role_arn   = aws_iam_role.eks_kafka_node_role.arn
   subnet_ids      = [for s in aws_subnet.solog_public_subnets : s.id]
-  #instance_types  = ["t3.medium"] 
   
   launch_template {
     id      = aws_launch_template.kafka_lt.id

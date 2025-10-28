@@ -39,7 +39,7 @@ resource "aws_eks_node_group" "monitoring_nodegroup" {
   node_group_name = "eks-monitoring-nodegroup"  
   node_role_arn   = aws_iam_role.eks_monitoring_node_role.arn
   subnet_ids      = [for s in aws_subnet.solog_public_subnets : s.id]
-  #instance_types  = ["t3.medium"] 
+
   launch_template {
     id      = aws_launch_template.monitoring_lt.id
     version = aws_launch_template.monitoring_lt.latest_version
@@ -47,12 +47,53 @@ resource "aws_eks_node_group" "monitoring_nodegroup" {
 
   # 오토스케일링 설정
   scaling_config {
-    desired_size = 2 
+    desired_size = 2
     min_size     = 2 
-    max_size     = 5 
+    max_size     = 4 
   }
   tags = {
-    "Name"        = "eks-monitoring-asg"
+    "Name"        = "eks-monitoring-asg-general"
+    "ClusterName" = "eks-monitoring-cluster" 
+    "ManagedBy"   = "Terraform"         
+  }
+  # 노드 그룹이 클러스터와 IAM 역할 생성 이후에 만들어지도록 의존성 설정
+  depends_on = [
+    aws_iam_role_policy_attachment.node_policy_attachment_worker_monitoring,
+    aws_iam_role_policy_attachment.node_policy_attachment_cni_monitoring,
+    aws_iam_role_policy_attachment.node_policy_attachment_ecr_monitoring,
+  ]
+}
+
+# 3. EKS 노드 그룹 - kafka connect 전용 노드그룹 
+resource "aws_eks_node_group" "monitoring_nodegroup_connect" {
+  cluster_name    = aws_eks_cluster.monitoring_cluster.name
+  node_group_name = "eks-monitoring-connect-nodegroup"  
+  node_role_arn   = aws_iam_role.eks_monitoring_node_role.arn
+  subnet_ids      = [for s in aws_subnet.solog_public_subnets : s.id]
+
+  launch_template {
+    id      = aws_launch_template.monitoring_lt.id
+    version = aws_launch_template.monitoring_lt.latest_version
+  }
+
+  # 오토스케일링 설정
+  scaling_config {
+    desired_size = 1 
+    min_size     = 1 
+    max_size     = 2 
+  }
+  taint {
+    key    = "app"
+    value  = "kafka-connect"
+    effect = "NO_SCHEDULE"
+  }
+
+  labels = {
+    "dedicated" = "kafka-connect"
+  }
+
+  tags = {
+    "Name"        = "eks-monitoring-asg-connect"
     "ClusterName" = "eks-monitoring-cluster" 
     "ManagedBy"   = "Terraform"         
   }

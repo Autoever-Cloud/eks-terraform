@@ -24,7 +24,7 @@ resource "aws_subnet" "solog_public_subnets" {
     Name = "solog-unified-public-subnet-${count.index + 1}"
     
     "kubernetes.io/cluster/eks-datacenter-cluster" = "shared"
-    "kubernetes.io/cluster/eks-kafka-cluster"      = "shared"
+    #"kubernetes.io/cluster/eks-kafka-cluster"      = "shared"
     "kubernetes.io/cluster/eks-monitoring-cluster" = "shared"
   }
 }

@@ -27,87 +27,84 @@ locals {
 # --- 2. DataCenter 클러스터 권한 설정 ---
 
 # 2-1. DataCenter 클러스터의 'aws-auth' ConfigMap을 읽어옵니다.
-data "kubernetes_config_map" "aws_auth_datacenter" {
-  provider = kubernetes.datacenter
-  metadata {
-    name      = "aws-auth"
-    namespace = "kube-system"
-  }
-}
+resource "kubernetes_config_map" "aws_auth_datacenter" {
+  provider = kubernetes.datacenter # DataCenter용 프로바이더 지정
 
-# 2-2. DataCenter 클러스터의 'aws-auth'를 수정(Patch)합니다.
-resource "kubernetes_config_map_v1_data" "aws_auth_patch_datacenter" {
-  provider = kubernetes.datacenter 
   metadata {
     name      = "aws-auth"
     namespace = "kube-system"
   }
   data = {
-    "mapUsers" = yamlencode(concat(
-      try(yamldecode(data.kubernetes_config_map.aws_auth_datacenter.data.mapUsers), []),
-      local.map_users
-    ))
+    "mapRoles" = yamlencode([
+      {
+        rolearn  = aws_iam_role.eks_datacenter_node_role.arn
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups = [
+          "system:bootstrappers",
+          "system:nodes",
+        ]
+      }
+    ])
+    "mapUsers" = yamlencode(local.map_users)
   }
   depends_on = [
-    aws_eks_node_group.datacenter_nodegroup 
+    aws_iam_role.eks_datacenter_node_role
   ]
 }
 
 # --- 3. Kafka 클러스터 권한 설정 ---
 
-# 3-1. Kafka 클러스터의 'aws-auth' ConfigMap을 읽어옵니다.
-data "kubernetes_config_map" "aws_auth_kafka" {
-  provider = kubernetes.kafka 
-  metadata {
-    name      = "aws-auth"
-    namespace = "kube-system"
-  }
-}
-
-# 3-2. Kafka 클러스터의 'aws-auth'를 수정(Patch)합니다.
-resource "kubernetes_config_map_v1_data" "aws_auth_patch_kafka" {
-  provider = kubernetes.kafka 
-  metadata {
-    name      = "aws-auth"
-    namespace = "kube-system"
-  }
-  data = {
-    "mapUsers" = yamlencode(concat(
-      try(yamldecode(data.kubernetes_config_map.aws_auth_kafka.data.mapUsers), []),
-      local.map_users
-    ))
-  }
-  depends_on = [
-    aws_eks_node_group.kafka_nodegroup 
-  ]
-}
-
-
+#resource "kubernetes_config_map" "aws_auth_kafka" {
+#  provider = kubernetes.kafka # Kafka용 프로바이더 지정
+#
+#  metadata {
+#    name      = "aws-auth"
+#    namespace = "kube-system"
+#  }
+#
+#  data = {
+#    "mapRoles" = yamlencode([
+#      {
+#        rolearn  = aws_iam_role.eks_kafka_node_role.arn
+#        username = "system:node:{{EC2PrivateDNSName}}"
+#        groups = [
+#          "system:bootstrappers",
+#          "system:nodes",
+#        ]
+#      }
+#    ])
+#    "mapUsers" = yamlencode(local.map_users)
+#  }
+#
+#  depends_on = [
+#    aws_iam_role.eks_kafka_node_role
+#  ]
+#}
 # --- 4. Monitoring 클러스터 권한 설정 ---
+resource "kubernetes_config_map" "aws_auth_monitoring" {
+  provider = kubernetes.monitoring # Monitoring용 프로바이더 지정
 
-# 4-1. Monitoring 클러스터의 'aws-auth' ConfigMap을 읽어옵니다.
-data "kubernetes_config_map" "aws_auth_monitoring" {
-  provider = kubernetes.monitoring 
   metadata {
     name      = "aws-auth"
     namespace = "kube-system"
   }
-}
 
-# 4-2. Monitoring 클러스터의 'aws-auth'를 수정(Patch)합니다.
-resource "kubernetes_config_map_v1_data" "aws_auth_patch_monitoring" {
-  provider = kubernetes.monitoring 
-  metadata {
-    name      = "aws-auth"
-    namespace = "kube-system"
-    }
   data = {
-    "mapUsers" = yamlencode(concat(
-      try(yamldecode(data.kubernetes_config_map.aws_auth_monitoring.data.mapUsers), []),
-      local.map_users
-    ))
+    "mapRoles" = yamlencode([
+      {
+        # [확인 필요] Monitoring 노드 그룹의 IAM 역할 ARN (이름 추측)
+        rolearn  = aws_iam_role.eks_monitoring_node_role.arn
+        username = "system:node:{{EC2PrivateDNSName}}"
+        groups = [
+          "system:bootstrappers",
+          "system:nodes",
+        ]
+      }
+    ])
+    "mapUsers" = yamlencode(local.map_users)
   }
+
   depends_on = [
-    aws_eks_node_group.monitoring_nodegroup 
+    aws_iam_role.eks_monitoring_node_role # [확인 필요] Monitoring 노드 역할 리소스 이름
   ]
 }

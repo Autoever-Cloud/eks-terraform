@@ -9,9 +9,9 @@
 data "tls_certificate" "datacenter_oidc" {
   url = aws_eks_cluster.datacenter_cluster.identity[0].oidc[0].issuer
 }
-data "tls_certificate" "kafka_oidc" {
-  url = aws_eks_cluster.kafka_cluster.identity[0].oidc[0].issuer
-}
+#data "tls_certificate" "kafka_oidc" {
+#  url = aws_eks_cluster.kafka_cluster.identity[0].oidc[0].issuer
+#}
 data "tls_certificate" "monitoring_oidc" {
   url = aws_eks_cluster.monitoring_cluster.identity[0].oidc[0].issuer
 }
@@ -22,11 +22,11 @@ resource "aws_iam_openid_connect_provider" "datacenter_oidc" {
   thumbprint_list = [data.tls_certificate.datacenter_oidc.certificates[0].sha1_fingerprint]
   url             = aws_eks_cluster.datacenter_cluster.identity[0].oidc[0].issuer
 }
-resource "aws_iam_openid_connect_provider" "kafka_oidc" {
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.kafka_oidc.certificates[0].sha1_fingerprint]
-  url             = aws_eks_cluster.kafka_cluster.identity[0].oidc[0].issuer
-}
+#resource "aws_iam_openid_connect_provider" "kafka_oidc" {
+#  client_id_list  = ["sts.amazonaws.com"]
+#  thumbprint_list = [data.tls_certificate.kafka_oidc.certificates[0].sha1_fingerprint]
+#  url             = aws_eks_cluster.kafka_cluster.identity[0].oidc[0].issuer
+#}
 resource "aws_iam_openid_connect_provider" "monitoring_oidc" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.monitoring_oidc.certificates[0].sha1_fingerprint]
@@ -56,20 +56,20 @@ resource "aws_eks_addon" "datacenter_ebs_csi" {
   ]
 }
 
-resource "aws_eks_addon" "kafka_ebs_csi" {
-  cluster_name      = aws_eks_cluster.kafka_cluster.name
-  addon_name        = "aws-ebs-csi-driver"
-  resolve_conflicts_on_create = "OVERWRITE"
-  resolve_conflicts_on_update = "OVERWRITE"
-
-  service_account_role_arn = aws_iam_role.eks_kafka_ebs_csi_role.arn
-
-  depends_on = [
-    aws_iam_openid_connect_provider.kafka_oidc,
-    aws_eks_node_group.kafka_nodegroup,
-    aws_iam_role_policy_attachment.ebs_csi_policy_attachment_kafka
-  ]
-}
+#resource "aws_eks_addon" "kafka_ebs_csi" {
+#  cluster_name      = aws_eks_cluster.kafka_cluster.name
+#  addon_name        = "aws-ebs-csi-driver"
+#  resolve_conflicts_on_create = "OVERWRITE"
+#  resolve_conflicts_on_update = "OVERWRITE"
+#
+#  service_account_role_arn = aws_iam_role.eks_kafka_ebs_csi_role.arn
+#
+#  depends_on = [
+#    aws_iam_openid_connect_provider.kafka_oidc,
+#    aws_eks_node_group.kafka_nodegroup,
+#    aws_iam_role_policy_attachment.ebs_csi_policy_attachment_kafka
+#  ]
+#}
 
 resource "aws_eks_addon" "monitoring_ebs_csi" {
   cluster_name      = aws_eks_cluster.monitoring_cluster.name
@@ -104,18 +104,18 @@ resource "aws_eks_addon" "datacenter_efs_csi" {
   ]
 }
 
-resource "aws_eks_addon" "kafka_efs_csi" {
-  cluster_name      = aws_eks_cluster.kafka_cluster.name
-  addon_name        = "aws-efs-csi-driver"
-  resolve_conflicts_on_create = "OVERWRITE"
-  resolve_conflicts_on_update = "OVERWRITE"
-
-  service_account_role_arn = aws_iam_role.eks_kafka_efs_csi_role.arn
-
-  depends_on = [
-    aws_eks_node_group.kafka_nodegroup
-  ]
-}
+#resource "aws_eks_addon" "kafka_efs_csi" {
+#  cluster_name      = aws_eks_cluster.kafka_cluster.name
+#  addon_name        = "aws-efs-csi-driver"
+#  resolve_conflicts_on_create = "OVERWRITE"
+#  resolve_conflicts_on_update = "OVERWRITE"
+#
+#  service_account_role_arn = aws_iam_role.eks_kafka_efs_csi_role.arn
+#
+#  depends_on = [
+#    aws_eks_node_group.kafka_nodegroup
+#  ]
+#}
 
 resource "aws_eks_addon" "monitoring_efs_csi" {
   cluster_name      = aws_eks_cluster.monitoring_cluster.name

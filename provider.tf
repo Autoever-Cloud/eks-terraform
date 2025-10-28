@@ -10,7 +10,6 @@ terraform {
       source = "hashicorp/kubernetes"
       version = "~> 2.20"
     }
-    # [추가] OIDC 인증서 지문을 가져오기 위해 필요
     tls = {
       source  = "hashicorp/tls"
       version = "~> 4.0"
@@ -27,45 +26,35 @@ provider "aws" {
 # 2. Kubernetes 프로바이더 (클러스터 "내부" 관리용)
 # --- 3개 클러스터에 대한 접속 정보를 각각 정의 ---
 
-# 2-1. DataCenter 클러스터 접속 정보
-data "aws_eks_cluster" "datacenter" {
-  name = aws_eks_cluster.datacenter_cluster.name
-}
-data "aws_eks_cluster_auth" "datacenter" {
-  name = aws_eks_cluster.datacenter_cluster.name
-}
 provider "kubernetes" {
-  alias = "datacenter" # "datacenter" 라는 별명 부여
-  host = data.aws_eks_cluster.datacenter.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.datacenter.certificate_authority[0].data)
-  token = data.aws_eks_cluster_auth.datacenter.token
+  alias = "datacenter" 
+  host = aws_eks_cluster.datacenter_cluster.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.datacenter_cluster.certificate_authority[0].data)
+  exec {  
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args = ["eks", "get-token", "--cluster-name", aws_eks_cluster.datacenter_cluster.name]
+  }
 }
 
-# 2-2. Kafka 클러스터 접속 정보
-data "aws_eks_cluster" "kafka" {
-  name = aws_eks_cluster.kafka_cluster.name 
-}
-data "aws_eks_cluster_auth" "kafka" {
-  name = aws_eks_cluster.kafka_cluster.name
-}
-provider "kubernetes" {
-  alias = "kafka"
-  host = data.aws_eks_cluster.kafka.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.kafka.certificate_authority[0].data)
-  token = data.aws_eks_cluster_auth.kafka.token
-}
+#provider "kubernetes" {
+#  alias = "kafka"
+#  host  = aws_eks_cluster.kafka_cluster.endpoint
+#  cluster_ca_certificate = base64decode(aws_eks_cluster.kafka_cluster.certificate_authority[0].data)
+#  exec {
+#    api_version = "client.authentication.k8s.io/v1beta1"
+#    command     = "aws"
+#    args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.kafka_cluster.name]
+#  }
+#}
 
-
-# 2-3. Monitoring 클러스터 접속 정보
-data "aws_eks_cluster" "monitoring" {
-  name = aws_eks_cluster.monitoring_cluster.name
-}
-data "aws_eks_cluster_auth" "monitoring" {
-  name = aws_eks_cluster.monitoring_cluster.name
-}
 provider "kubernetes" {
   alias = "monitoring"
-  host = data.aws_eks_cluster.monitoring.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.monitoring.certificate_authority[0].data)
-  token = data.aws_eks_cluster_auth.monitoring.token
+  host  = aws_eks_cluster.monitoring_cluster.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.monitoring_cluster.certificate_authority[0].data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.monitoring_cluster.name]
+  }
 }
