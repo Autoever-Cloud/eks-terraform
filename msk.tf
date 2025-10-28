@@ -26,10 +26,6 @@ data "aws_subnets" "solog_public_subnets" {
     name   = "vpc-id"
     values = [data.aws_vpc.solog_vpc.id]
   }
-  filter {
-    name   = "tag:Name" # 또는 "tag:Tier" 등 식별 가능한 태그
-    values = ["solog-unified-public-subnet-*"]
-  }
 }
 
 # --- 1-3. 기존 EKS 워커 노드의 보안 그룹 정보 가져오기 ---
@@ -46,11 +42,11 @@ data "aws_security_group" "eks_consumer_sg" {
 }
 
 # 2. MSK 클러스터를 위한 새 보안 그룹 생성
-variable "kafka_ports" {
-  description = "EKS가 MSK에 접속하기 위해 열어줄 Kafka 포트 목록"
-  type        = list(number)
-  default     = [9092, 9098, 9094] 
-}
+#variable "kafka_ports" {
+#  description = "EKS가 MSK에 접속하기 위해 열어줄 Kafka 포트 목록"
+#  type        = list(number)
+#  default     = [9092, 9098, 9094] 
+#}
 
 resource "aws_security_group" "msk_sg" {
   name        = "my-msk-cluster-sg"
@@ -81,7 +77,7 @@ resource "aws_security_group" "msk_sg" {
 
 # 3. AWS MSK 클러스터 생성 (KRaft + EBS)
 resource "aws_msk_cluster" "msk_cluster" {
-  cluster_name = "solog-msk-cluster"
+  cluster_name = "solog-msk-cluster2"
 
   kafka_version = "3.6.0"
 
