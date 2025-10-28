@@ -17,6 +17,21 @@ resource "aws_eks_cluster" "datacenter_cluster" {
     aws_vpc.solog_vpc,
   ]
 }
+# 1. EKS 노드를 위한 시작 템플릿 생성
+resource "aws_launch_template" "datacenter_lt" {
+  name = "eks-datacenter-lt"
+
+  instance_type = "t3.medium" 
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name        = "eks-datacenter-node" 
+      ClusterName = "eks-datacenter-cluster"
+      ManagedBy   = "Terraform"
+    }
+  }
+}
 
 # 2. EKS 노드 그룹 생성
 resource "aws_eks_node_group" "datacenter_nodegroup" {
@@ -24,8 +39,12 @@ resource "aws_eks_node_group" "datacenter_nodegroup" {
   node_group_name = "eks-datacenter-nodegroup"  
   node_role_arn   = aws_iam_role.eks_datacenter_node_role.arn
   subnet_ids      = [for s in aws_subnet.solog_public_subnets : s.id]
-  instance_types  = ["t3.medium"] 
-
+  # instance_types  = ["t3.medium"] 
+  
+  launch_template {
+    id      = aws_launch_template.datacenter_lt.id
+    version = aws_launch_template.datacenter_lt.latest_version
+  }
   # 오토스케일링 설정
   scaling_config {
     desired_size = 1 
@@ -34,7 +53,7 @@ resource "aws_eks_node_group" "datacenter_nodegroup" {
   }
 
   tags = {
-    "Name"        = "eks-datacenter-node"
+    "Name"        = "eks-datacenter-asg"
     "ClusterName" = "eks-datacenter-cluster" 
     "ManagedBy"   = "Terraform"         
   }

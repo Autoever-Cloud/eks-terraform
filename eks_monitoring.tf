@@ -17,6 +17,21 @@ resource "aws_eks_cluster" "monitoring_cluster" {
     aws_vpc.solog_vpc,
   ]
 }
+# 1. EKS 노드를 위한 시작 템플릿 생성
+resource "aws_launch_template" "monitoring_lt" {
+  name = "eks-monitoring-lt"
+
+  instance_type = "t3.medium" 
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name        = "eks-monitoring-node" 
+      ClusterName = "eks-monitoring-cluster"
+      ManagedBy   = "Terraform"
+    }
+  }
+}
 
 # 2. EKS 노드 그룹 생성
 resource "aws_eks_node_group" "monitoring_nodegroup" {
@@ -24,7 +39,11 @@ resource "aws_eks_node_group" "monitoring_nodegroup" {
   node_group_name = "eks-monitoring-nodegroup"  
   node_role_arn   = aws_iam_role.eks_monitoring_node_role.arn
   subnet_ids      = [for s in aws_subnet.solog_public_subnets : s.id]
-  instance_types  = ["t3.medium"] 
+  #instance_types  = ["t3.medium"] 
+  launch_template {
+    id      = aws_launch_template.monitoring_lt.id
+    version = aws_launch_template.monitoring_lt.latest_version
+  }
 
   # 오토스케일링 설정
   scaling_config {
@@ -33,7 +52,7 @@ resource "aws_eks_node_group" "monitoring_nodegroup" {
     max_size     = 5 
   }
   tags = {
-    "Name"        = "eks-monitoring-node"
+    "Name"        = "eks-monitoring-asg"
     "ClusterName" = "eks-monitoring-cluster" 
     "ManagedBy"   = "Terraform"         
   }
