@@ -37,16 +37,6 @@ resource "aws_security_group_rule" "allow_nfs_from_datacenter_nodes" {
   source_security_group_id = aws_eks_cluster.datacenter_cluster.vpc_config[0].cluster_security_group_id
 }
 
-# 3-2. Kafka 노드 -> EFS-SG
-#resource "aws_security_group_rule" "allow_nfs_from_kafka_nodes" {
-#  type                      = "ingress"
-#  from_port                 = 2049
-#  to_port                   = 2049
-#  protocol                  = "tcp"
-#  security_group_id         = aws_security_group.solog_efs_sg.id
-#  source_security_group_id = aws_eks_cluster.kafka_cluster.vpc_config[0].cluster_security_group_id
-#}
-
 # 3-3. Monitoring 노드 -> EFS-SG
 resource "aws_security_group_rule" "allow_nfs_from_monitoring_nodes" {
   type                      = "ingress"
@@ -61,7 +51,7 @@ resource "aws_security_group_rule" "allow_nfs_from_monitoring_nodes" {
 # 4. EFS 마운트 대상 생성 (2개 서브넷)
 # ==========================================================
 resource "aws_efs_mount_target" "solog_efs_mt" {
-  count           = 2 # vpc.tf 에서 2개의 서브넷을 생성했으므로
+  count           = 2 
   file_system_id  = aws_efs_file_system.solog_efs.id
   subnet_id       = aws_subnet.solog_public_subnets[count.index].id
   security_groups = [aws_security_group.solog_efs_sg.id]
@@ -69,7 +59,6 @@ resource "aws_efs_mount_target" "solog_efs_mt" {
   # EKS 클러스터의 보안 그룹 규칙이 먼저 생성되어야 함
   depends_on = [
     aws_security_group_rule.allow_nfs_from_datacenter_nodes,
-    #aws_security_group_rule.allow_nfs_from_kafka_nodes,
     aws_security_group_rule.allow_nfs_from_monitoring_nodes
   ]
 }
@@ -98,25 +87,6 @@ resource "kubernetes_storage_class_v1" "efs_sc_datacenter" {
   # EFS 애드온이 먼저 설치되어야 함
   depends_on = [aws_eks_addon.datacenter_efs_csi]
 }
-
-# 5-2. Kafka 클러스터에 StorageClass 생성
-#resource "kubernetes_storage_class_v1" "efs_sc_kafka" {
-#  provider = kubernetes.kafka # provider.tf의 별명 사용
-#
-#  metadata {
-#    name = "efs-sc"
-#  }
-#  storage_provisioner = "efs.csi.aws.com"
-#  reclaim_policy      = "Delete"
-#  volume_binding_mode = "Immediate"
-#  parameters = {
-#    provisioningMode = "efs-ap"
-#    fileSystemId     = aws_efs_file_system.solog_efs.id
-#    directoryPerms   = "700"
-#  }
-#
-#  depends_on = [aws_eks_addon.kafka_efs_csi]
-#}
 
 # 5-3. Monitoring 클러스터에 StorageClass 생성
 resource "kubernetes_storage_class_v1" "efs_sc_monitoring" {

@@ -1,5 +1,5 @@
 # vpc.tf
-# [비용 절감형] 1개 VPC, 1개 AZ, 1개 서브넷으로 3개 클러스터 모두 공유
+# [비용 절감형] 1개 VPC, 2개 AZ, 2개 서브넷으로 3개 클러스터 모두 공유
 
 # 1. VPC 생성
 resource "aws_vpc" "solog_vpc" {
@@ -18,13 +18,13 @@ resource "aws_subnet" "solog_public_subnets" {
   vpc_id                  = aws_vpc.solog_vpc.id
   availability_zone       = ["ap-northeast-2a", "ap-northeast-2c"][count.index]
   cidr_block              = "192.168.${count.index}.0/24"
-  map_public_ip_on_launch = true 
+  map_public_ip_on_launch = true
 
   tags = {
     Name = "solog-unified-public-subnet-${count.index + 1}"
-    
+
+    # 3개 클러스터 이름을 모두 태그
     "kubernetes.io/cluster/eks-datacenter-cluster" = "shared"
-    #"kubernetes.io/cluster/eks-kafka-cluster"      = "shared"
     "kubernetes.io/cluster/eks-monitoring-cluster" = "shared"
   }
 }
@@ -52,7 +52,7 @@ resource "aws_route_table" "solog_public_rt" {
   }
 }
 
-# 5. 서브넷 3개를 라우트 테이블에 연결
+# 5. 서브넷 2개를 라우트 테이블에 연결
 resource "aws_route_table_association" "solog_public_rta" {
   count          = 2
   subnet_id      = aws_subnet.solog_public_subnets[count.index].id
