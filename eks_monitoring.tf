@@ -20,7 +20,7 @@ resource "aws_eks_cluster" "monitoring_cluster" {
 resource "aws_launch_template" "monitoring_lt" {
   name = "eks-monitoring-lt"
 
-  instance_type = "t3.medium"
+  instance_type = "t3.large"
 
   tag_specifications {
     resource_type = "instance"
@@ -45,9 +45,9 @@ resource "aws_eks_node_group" "monitoring_nodegroup" {
   }
 
   scaling_config {
-    desired_size = 2
-    min_size     = 2
-    max_size     = 4
+    desired_size = 4
+    min_size     = 4
+    max_size     = 5
   }
 
   tags = {
