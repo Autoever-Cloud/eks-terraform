@@ -42,7 +42,7 @@ provider "kubernetes" {
 
 # 2-2. Kafka 클러스터 접속 정보
 data "aws_eks_cluster" "kafka" {
-  name = aws_eks_cluster.kafka_cluster.name 
+  name = aws_eks_cluster.kafka_cluster.name
 }
 data "aws_eks_cluster_auth" "kafka" {
   name = aws_eks_cluster.kafka_cluster.name

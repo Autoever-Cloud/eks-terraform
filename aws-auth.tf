@@ -59,9 +59,9 @@ resource "kubernetes_config_map_v1_data" "aws_auth_patch_datacenter" {
 
 # 3-1. Kafka 클러스터의 'aws-auth' ConfigMap을 읽어옵니다.
 data "kubernetes_config_map" "aws_auth_kafka" {
-  provider = kubernetes.kafka # Kafka 클러스터에 접속
+  provider = kubernetes.kafka # Kafka 클러스터에 접속
   metadata {
-    name      = "aws-auth"
+    name      = "aws-auth"
     namespace = "kube-system"
   }
 }
@@ -70,7 +70,7 @@ data "kubernetes_config_map" "aws_auth_kafka" {
 resource "kubernetes_config_map_v1_data" "aws_auth_patch_kafka" {
   provider = kubernetes.kafka # Kafka 클러스터에 접속
   metadata {
-    name      = "aws-auth"
+    name      = "aws-auth"
     namespace = "kube-system"
   }
   data = {
@@ -80,7 +80,7 @@ resource "kubernetes_config_map_v1_data" "aws_auth_patch_kafka" {
     ))
   }
   depends_on = [
-    aws_eks_node_group.kafka_nodegroup 
+    aws_eks_node_group.kafka_nodegroup
   ]
 }
 
