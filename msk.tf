@@ -10,13 +10,27 @@ resource "aws_security_group" "msk_sg" {
     protocol        = "-1" # 모든 프로토콜
     security_groups = [aws_eks_cluster.datacenter_cluster.vpc_config[0].cluster_security_group_id]
   }
-
   ingress {
     from_port       = 0
     to_port         = 0
     protocol        = "-1"
     security_groups = [aws_eks_cluster.monitoring_cluster.vpc_config[0].cluster_security_group_id]
   }
+
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp" 
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port       = 9092
+    to_port         = 9092
+    protocol        = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+
 
   # --- 아웃바운드 규칙 (Egress) ---
   egress {
