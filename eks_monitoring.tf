@@ -32,6 +32,21 @@ resource "aws_launch_template" "monitoring_lt" {
   }
 }
 
+resource "aws_launch_template" "monitoring_lt_connect" {
+  name = "eks-monitoring-lt-connect"
+
+  instance_type = "t3.medium"
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name        = "eks-monitoring-connect-node"
+      ClusterName = "eks-monitoring-cluster"
+      ManagedBy   = "Terraform"
+    }
+  }
+}
+
 # 2. EKS 노드 그룹 생성
 resource "aws_eks_node_group" "monitoring_nodegroup" {
   cluster_name    = aws_eks_cluster.monitoring_cluster.name
@@ -45,8 +60,8 @@ resource "aws_eks_node_group" "monitoring_nodegroup" {
   }
 
   scaling_config {
-    desired_size = 4
-    min_size     = 4
+    desired_size = 3
+    min_size     = 3
     max_size     = 5
   }
 
@@ -71,8 +86,8 @@ resource "aws_eks_node_group" "monitoring_nodegroup_connect" {
   subnet_ids      = [for s in aws_subnet.solog_public_subnets : s.id]
 
   launch_template {
-    id      = aws_launch_template.monitoring_lt.id
-    version = aws_launch_template.monitoring_lt.latest_version
+    id      = aws_launch_template.monitoring_lt_connect.id
+    version = aws_launch_template.monitoring_lt_connect.latest_version
   }
 
   # 오토스케일링 설정

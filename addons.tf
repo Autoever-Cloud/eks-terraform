@@ -71,15 +71,3 @@ resource "aws_eks_addon" "datacenter_efs_csi" {
     aws_eks_node_group.datacenter_nodegroup
   ]
 }
-
-resource "aws_eks_addon" "monitoring_efs_csi" {
-  cluster_name                = aws_eks_cluster.monitoring_cluster.name
-  addon_name                  = "aws-efs-csi-driver"
-  resolve_conflicts_on_create = "OVERWRITE"
-  resolve_conflicts_on_update = "OVERWRITE"
-  # iam_monitoring.tf 에서 만든 EFS 역할 ARN을 명시적으로 연결
-  service_account_role_arn = aws_iam_role.eks_monitoring_efs_csi_role.arn
-  depends_on               = [
-    aws_eks_node_group.monitoring_nodegroup
-  ]
-}

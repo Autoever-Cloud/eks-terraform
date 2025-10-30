@@ -8,15 +8,16 @@ resource "aws_security_group" "msk_sg" {
     from_port       = 0
     to_port         = 0
     protocol        = "-1" # 모든 프로토콜
-    source_security_group_id = aws_eks_cluster.datacenter_cluster.vpc_config[0].cluster_security_group_id
+    security_groups = [aws_eks_cluster.datacenter_cluster.vpc_config[0].cluster_security_group_id]
   }
 
   ingress {
     from_port       = 0
     to_port         = 0
     protocol        = "-1"
-    source_security_group_id = aws_eks_cluster.monitoring_cluster.vpc_config[0].cluster_security_group_id
+    security_groups = [aws_eks_cluster.monitoring_cluster.vpc_config[0].cluster_security_group_id]
   }
+
   # --- 아웃바운드 규칙 (Egress) ---
   egress {
     from_port   = 0
@@ -73,7 +74,6 @@ resource "aws_msk_cluster" "msk_cluster" {
   depends_on = [
     aws_security_group.msk_sg,
     aws_eks_cluster.datacenter_cluster,
-    aws_eks_cluster.kafka_cluster,
     aws_eks_cluster.monitoring_cluster
   ]
 } 
