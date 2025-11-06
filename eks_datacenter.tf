@@ -45,8 +45,8 @@ resource "aws_eks_node_group" "datacenter_nodegroup" {
   }
 
   scaling_config {
-    desired_size = 2
-    min_size     = 2
+    desired_size = 5
+    min_size     = 5
     max_size     = 5
   }
 
